@@ -1,0 +1,1771 @@
+<template>
+  <transition name="modal-fade">
+    <div v-if="showModal" class="modal-backdrop">
+      <div
+        class="modal"
+        role="dialog"
+        aria-labelledby="modalTitle"
+        aria-describedby="modalDescription"
+      >
+        <header class="modal-header" id="modalTitle">
+          <button
+            type="button"
+            class="btn-close"
+            @click="emit('close')"
+            aria-label="Close modal"
+          >
+            x
+          </button>
+        </header>
+        <section class="modal-body" id="modalDescription">
+          <div class="form-sidebar">
+            <ul>
+              <li>
+                <img v-if="step >= 1" src="../../assets/svgs/Check.svg" height="20" />
+                <img v-else src="../../assets/svgs/Check-Grey.svg" height="20" />
+                Lesson Details
+              </li>
+              <li>
+                <img v-if="step >= 2" src="../../assets/svgs/Check.svg" height="20" />
+                <img v-else src="../../assets/svgs/Check-Grey.svg" height="20" /> Upload
+                Assets
+              </li>
+              <li>
+                <img v-if="step >= 3" src="../../assets/svgs/Check.svg" height="20" />
+                <img v-else src="../../assets/svgs/Check-Grey.svg" height="20" /> Lesson
+                Content
+              </li>
+              <li>
+                <img v-if="step >= 4" src="../../assets/svgs/Check.svg" height="20" />
+                <img v-else src="../../assets/svgs/Check-Grey.svg" height="20" /> Set
+                Pricing
+              </li>
+              <li>
+                <img v-if="step >= 5" src="../../assets/svgs/Check.svg" height="20" />
+                <img v-else src="../../assets/svgs/Check-Grey.svg" height="20" /> Lesson
+                NFT
+              </li>
+            </ul>
+          </div>
+          <!-- Step 1 -->
+          <div v-if="step === 1" class="form-container">
+            <h2>Lesson Details</h2>
+            <div class="input-row mb-5">
+              <label for="category">Main Category</label>
+              <select
+                v-model="form.category"
+                class="category-select"
+                name="category"
+                @change="selectCategory($event)"
+              >
+                <option
+                  v-for="option in options"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
+            </div>
+            <div class="input-row mb-5">
+              <label for="title">Title</label>
+              <input
+                type="text"
+                name="title"
+                placeholder="Enter a title,eg. My Lesson"
+                v-model="form.title"
+              />
+            </div>
+            <div class="description-row mb-5">
+              <label for="description">Excerpt</label>
+              <textarea
+                rows="4"
+                cols="50"
+                type="text"
+                name="excerpt"
+                placeholder="Enter a short description"
+                v-model="form.excerpt"
+              />
+            </div>
+            <div class="description-row mb-10">
+              <label for="description">Description</label>
+              <textarea
+                rows="8"
+                cols="50"
+                type="text"
+                name="description"
+                placeholder="Enter a full description"
+                v-model="form.description"
+              />
+            </div>
+          </div>
+          <!-- Step 2 -->
+          <div v-if="step === 2" class="form-container">
+            <h2>Lesson Assets</h2>
+            <div class="description-row mb-10">
+              <label for="banner">Upload Lesson Banner (1500x200px)</label>
+              <div class="upload-box">
+                <button class="select-file-button" @click="onBannerPick">
+                  <img src="../../assets/svgs/File_upload.svg" height="20" /> Select file
+                </button>
+                {{ bannerImage?.name }}
+                <input
+                  type="file"
+                  style="display: none"
+                  ref="fileBannerInput"
+                  accept="image/*"
+                  @change="onBannerFilePicked"
+                />
+              </div>
+            </div>
+            <div class="description-row mb-10">
+              <label for="image">Upload Lesson Icon (500x500px)</label>
+              <div class="upload-box">
+                <button class="select-file-button" @click="onIconPick">
+                  <img src="../../assets/svgs/File_upload.svg" height="20" /> Select file
+                </button>
+                {{ iconImage?.name }}
+                <input
+                  type="file"
+                  style="display: none"
+                  ref="fileIconInput"
+                  accept="image/*"
+                  @change="onIconFilePicked"
+                />
+              </div>
+            </div>
+            <div class="description-row mb-10">
+              <label for="image">Lesson NFT Image (1000x1000px)</label>
+              <div class="upload-box">
+                <button class="select-file-button" @click="onNftPick">
+                  <img src="../../assets/svgs/File_upload.svg" height="20" /> Select file
+                </button>
+                {{ nftImage?.name }}
+                <input
+                  type="file"
+                  style="display: none"
+                  ref="fileNftInput"
+                  accept="image/*"
+                  @change="onNftFilePicked"
+                />
+              </div>
+            </div>
+            <div class="description-row mb-10">
+              <label for="links">Add Lesson Links</label>
+              <div v-for="(link, i) in form.links" :key="i" class="input-box mb-10">
+                <img src="../../assets/svgs/socials/website.svg" alt="Website" />
+                <span class="link-text">{{ link.label }}</span>
+              </div>
+              <div class="input-box mb-10">
+                <img src="../../assets/svgs/socials/website.svg" alt="Website" />
+                <input
+                  type="text"
+                  name="linkText"
+                  placeholder="Label"
+                  v-model="linkText"
+                />
+                <input
+                  type="text"
+                  name="linkURL"
+                  placeholder="Add link"
+                  v-model="linkURL"
+                />
+                <button class="add-link-button" @click="addLink()">
+                  <img src="../../assets/svgs/Add-Circle.svg" alt="Add link" />
+                </button>
+              </div>
+            </div>
+          </div>
+          <!-- Step 3 -->
+          <div v-if="step === 3" class="form-container">
+            <h2>Lesson Content</h2>
+            <div class="description-row mb-10">
+              <label for="type">Lesson Type</label>
+              <CheckBoxGroup
+                :items="[
+                  {
+                    label: 'Article',
+                    value: 'article',
+                    checked: true,
+                  },
+                  {
+                    label: 'Video',
+                    value: 'video',
+                    checked: false,
+                  },
+                  {
+                    label: 'Quest',
+                    value: 'quest',
+                    checked: false,
+                  },
+                  {
+                    label: 'Task',
+                    value: 'task',
+                    checked: false,
+                  },
+
+                  {
+                    label: 'Publisher NFT',
+                    value: 'publisher',
+                    checked: false,
+                  },
+                  {
+                    label: 'Tiny Tap',
+                    value: 'tinytap',
+                    checked: false,
+                  },
+                ]"
+                @on-change="onTypeChange"
+              />
+            </div>
+
+            <div v-if="form.type === 'article'" class="description-row mb-10">
+              <label for="article">Article Content</label>
+              <textarea
+                rows="20"
+                cols="30"
+                type="text"
+                name="article"
+                placeholder="Enter lesson content"
+                v-model="form.content"
+              />
+            </div>
+
+            <div v-if="form.type === 'video'" class="description-row mb-10">
+              <label for="video">Video</label>
+              <input
+                type="text"
+                name="video"
+                placeholder="Enter the Video link"
+                v-model="form.video"
+              />
+              <VideoPlayer
+                v-if="form.video"
+                :class="'videoplayer'"
+                :src="form.video"
+                :muted="true"
+                :autoplay="false"
+                :controls="true"
+                :loop="false"
+                @play="onPlayerPlay"
+                @pause="onPlayerPause"
+                @ended="onPlayerEnded"
+                @loadeddata="onPlayerLoadeddata"
+                @waiting="onPlayerWaiting"
+                @playing="onPlayerPlaying"
+                @timeupdate="onPlayerTimeupdate"
+                @canplay="onPlayerCanplay"
+                @canplaythrough="onPlayerCanplaythrough"
+                @statechanged="playerStateChanged"
+              >
+                <template
+                  v-slot:controls="{
+                    togglePlay,
+                    playing,
+                    percentagePlayed,
+                    seekToPercentage,
+                    duration,
+                    convertTimeToDuration,
+                    videoMuted,
+                    toggleMute,
+                  }"
+                >
+                  <div class="videoplayer-controls">
+                    <button @click="togglePlay()" class="videoplayer-controls-toggleplay">
+                      {{ playing ? "pause" : "play" }}
+                    </button>
+                    <div class="videoplayer-controls-time">
+                      {{ convertTimeToDuration(time) }}<br />
+                      {{ convertTimeToDuration(duration) }}
+                    </div>
+                    <VideoPlayerTrack
+                      :percentage="percentagePlayed"
+                      @seek="seekToPercentage"
+                      class="videoplayer-controls-track"
+                    />
+                    <button @click="toggleMute()" class="videoplayer-controls-togglemute">
+                      {{ videoMuted ? "unmute" : "mute" }}
+                    </button>
+                  </div>
+                </template>
+              </VideoPlayer>
+              <div v-else class="no-video-banner">
+                <img src="../../assets/images/VideoUpload.png" width="540" />
+              </div>
+            </div>
+
+            <div v-if="form.type === 'publisher'" class="description-row mb-10">
+              <label for="publisher">Publisher NFT</label>
+              <input
+                type="text"
+                name="publisher"
+                placeholder="Enter the Publisher NFT title"
+                v-model="form.content"
+              />
+            </div>
+
+            <div v-if="form.type === 'tinytap'" class="description-row mb-10">
+              <label for="tinytap">TinyTap NFT</label>
+              <input
+                type="text"
+                name="tinytap"
+                placeholder="Enter the TinyTap NFT title"
+                v-model="form.content"
+              />
+            </div>
+
+            <template v-if="form.type === 'quest'">
+              <div class="description-row mb-10">
+                <label for="questText">Add Quest Steps</label>
+                <div v-for="(link, i) in form.quests" :key="i" class="input-box mb-20">
+                  <img src="../../assets/svgs/link.svg" alt="Quest link" />
+                  <span class="link-text">{{ link.label }}</span>
+                </div>
+              </div>
+              <div class="input-row mb-5">
+                <label for="questStep">Step No</label>
+                <input
+                  type="text"
+                  name="questStep"
+                  placeholder="Enter Quest step number"
+                  v-model="questStep"
+                />
+              </div>
+              <div class="input-row mb-5">
+                <label for="questText">Title</label>
+                <input
+                  type="text"
+                  name="questText"
+                  placeholder="Enter a name for the Quest"
+                  v-model="questText"
+                />
+              </div>
+              <div class="input-description mb-5">
+                <label for="questDetails">Description</label>
+                <textarea
+                  rows="6"
+                  cols="50"
+                  type="text"
+                  name="questDetails"
+                  placeholder="Enter a description of the Quest"
+                  v-model="questDetails"
+                />
+              </div>
+              <div class="input-box mb-10">
+                <img src="../../assets/svgs/link.svg" alt="Quest Link" />
+                <input
+                  type="text"
+                  name="questType"
+                  placeholder="Enter the type of quest, eg. follow, like, share, etc."
+                  v-model="questType"
+                />
+              </div>
+              <div class="input-row mb-10">
+                <button class="add-link-button" @click="addQuest()">
+                  <img src="../../assets/svgs/Add-Circle.svg" alt="Add Quest Step" />
+                </button>
+              </div>
+            </template>
+
+            <!-- Lesson Task Content -->
+            <template v-if="form.type === 'task'">
+              <div class="description-row mb-10">
+                <label for="links">Add Tasks</label>
+                <div v-for="(task, i) in form.tasks" :key="i" class="input-box mb-10">
+                  <img src="../../assets/svgs/Check.svg" alt="Lesson Task" />
+                  <span class="link-text">{{ task.label }}</span>
+                </div>
+              </div>
+              <div class="input-row mb-5">
+                <label for="price">Task Label</label>
+                <input
+                  type="text"
+                  name="taskText"
+                  placeholder="Enter a label for the task"
+                  v-model="taskText"
+                />
+              </div>
+              <div class="description mb-5">
+                <label for="price">Description</label>
+                <textarea
+                  rows="6"
+                  cols="50"
+                  type="text"
+                  name="taskStep"
+                  placeholder="Enter a description of the task"
+                  v-model="taskStep"
+                />
+              </div>
+              <div class="input-row mb-5">
+                <button class="add-task-button" @click="addTask()">
+                  <img src="../../assets/svgs/Add-Circle.svg" alt="Add Task" />
+                </button>
+              </div>
+            </template>
+          </div>
+          <!-- Step 4 -->
+          <div v-if="step === 4" class="form-container">
+            <h2>Pricing</h2>
+            <!-- <div class="input-row mb-10">
+              <label for="name">Token</label>
+              <input
+                type="text"
+                name="token"
+                placeholder="Enter the token to charge for the course"
+                :value="form.token"
+              />
+            </div> -->
+            <div class="input-row mb-10">
+              <label for="price">Lesson Price</label>
+              <input
+                type="text"
+                name="price"
+                placeholder="Enter a price for the full course"
+                v-model="form.price"
+              />
+            </div>
+            <div class="input-row mb-10">
+              <label for="discount">Discount %</label>
+              <input
+                type="text"
+                name="discount"
+                placeholder="Enter a course discount %"
+                v-model="form.discount"
+              />
+            </div>
+            <div class="date-row mb-10">
+              <label for="from_date">Discount Period</label>
+              <div class="date-inputs">
+                <input
+                  type="date"
+                  name="from_date"
+                  placeholder="Enter a course discount from date"
+                  v-model="form.from_date"
+                />
+                <input
+                  type="date"
+                  name="to_date"
+                  placeholder="Enter a course discount to date"
+                  v-model="form.to_date"
+                />
+              </div>
+            </div>
+          </div>
+          <!-- Step 5 -->
+          <div v-if="step === 5" class="form-container">
+            <h2>Course NFT Preview</h2>
+            <div class="nft-preview">
+              <div class="nft-image">
+                <img :src="nftImageUrl ? nftImageUrl : 'rectangle.svg'" />
+              </div>
+              <div class="nft-column">
+                <div class="nft-title">
+                  {{ form.title ? form.title : "" }}
+                </div>
+                <div class="nft-excerpt">
+                  {{ form.excerpt ? form.excerpt : "" }}
+                </div>
+              </div>
+              <div class="nft-card-row">
+                <div class="nft-category">
+                  <div class="nft-date">
+                    {{ form.created_date ? form.created_date : "" }}
+                  </div>
+                  <div v-if="form.category" class="category-indicator">
+                    {{ form.category ? form.category : "" }}
+                  </div>
+                </div>
+                <div class="button-column">
+                  <BuyButton
+                    :btn-size="'small'"
+                    :color="'blue'"
+                    :course-id="form.id"
+                    :price="form.price"
+                    :discount="form.discount"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <footer class="modal-footer">
+          <div class="footer-container">
+            <button
+              type="button"
+              class="cancel-button"
+              @click="cancelCreate()"
+              aria-label="Close modal"
+            >
+              Cancel
+            </button>
+            <div class="button-container">
+              <button
+                v-if="step >= 1"
+                type="button"
+                class="draft-grey"
+                @click="saveDraft()"
+              >
+                Save Draft
+              </button>
+              <button
+                v-if="step > 1"
+                type="button"
+                class="cancel-button"
+                @click="goBack()"
+              >
+                Back
+              </button>
+              <button v-if="step < 5" type="button" class="btn-blue" @click="nextStep()">
+                Next
+              </button>
+              <button
+                v-if="step === 5"
+                type="button"
+                class="btn-blue"
+                @click="createLesson()"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </transition>
+</template>
+<script setup lang="ts">
+import { ref, Ref, reactive } from "vue";
+import { useStore } from "../../store";
+import { metadataObject } from "src/models/metadata";
+import BuyButton from "../Buttons/BuyButton.vue";
+import CheckBoxGroup from "../CheckBox/CheckBoxGroup.vue";
+import VideoPlayer from "../Video/VideoPlayer.vue";
+import VideoPlayerTrack from "../Video/VideoPlayerTrack.vue";
+
+const emit = defineEmits(["close"]);
+const store = useStore();
+
+interface Player {
+  setPlaying: (isPlaying: boolean) => void;
+}
+
+interface PlayEvent {
+  target: any;
+  type: string;
+}
+
+defineProps({
+  showModal: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const form: any = reactive({
+  id: undefined,
+  type: "article",
+  category: "",
+  categories: [],
+  banner: undefined,
+  image: undefined,
+  title: undefined,
+  excerpt: undefined,
+  description: undefined,
+  content: undefined,
+  video: undefined,
+  tasks: [],
+  quests: [],
+  price: undefined,
+  sales: undefined,
+  total: undefined,
+  token: undefined,
+  nft: {},
+  links: [],
+  step: 0,
+  isLive: false,
+  created_date: undefined,
+  updated_date: undefined,
+});
+
+const options = ref([
+  { value: "", label: "Choose Category" },
+  { value: "animation", label: "Animation" },
+  { value: "ai", label: "Artificial Intelligence" },
+  { value: "architecture", label: "Architecture & Spaces" },
+  { value: "craft", label: "Craft" },
+  { value: "education", label: "Education" },
+  { value: "engineering", label: "Engineering" },
+  { value: "fashion", label: "Fashion" },
+  { value: "illustration", label: "Illustration" },
+  { value: "marketing", label: "Marketing & Business" },
+  { value: "music", label: "Music & Audio" },
+  { value: "photography", label: "Photography" },
+  { value: "video", label: "Video" },
+  { value: "development", label: "Software Development" },
+  { value: "web3", label: "Web3" },
+  { value: "writing", label: "Writing" },
+  { value: "other", label: "Other" },
+]);
+
+const step = ref(1);
+const linkText = ref("");
+const linkURL = ref("");
+
+const taskText = ref("");
+const taskStep = ref("");
+
+const questType = ref("");
+const questStep = ref("");
+const questText = ref("");
+const questDetails = ref("");
+
+const vidPlayer = ref();
+const time = ref(0);
+
+/* Ref: name must match the ref in the template */
+const fileBannerInput: Ref<HTMLElement | null> = ref(null);
+const bannerImage = ref();
+const bannerImageUrl = ref();
+
+/* Ref: name must match the ref in the template */
+const fileIconInput: Ref<HTMLElement | null> = ref(null);
+const iconImage = ref();
+const iconImageUrl = ref();
+
+/* Ref: name must match the ref in the template */
+const fileNftInput: Ref<HTMLElement | null> = ref(null);
+const nftImage = ref();
+const nftImageUrl = ref();
+
+function onBannerPick() {
+  fileBannerInput.value?.click();
+}
+function onIconPick() {
+  fileIconInput.value?.click();
+}
+function onNftPick() {
+  fileNftInput.value?.click();
+}
+
+function onBannerFilePicked(event: any) {
+  const files = event.target.files;
+  let filename = files[0].name;
+  const fileReader = new FileReader();
+  fileReader.addEventListener("load", () => {
+    bannerImageUrl.value = fileReader.result;
+  });
+  fileReader.readAsDataURL(files[0]);
+  bannerImage.value = files[0];
+}
+
+function onIconFilePicked(event: any) {
+  const files = event.target.files;
+  let filename = files[0].name;
+  const fileReader = new FileReader();
+  fileReader.addEventListener("load", () => {
+    iconImageUrl.value = fileReader.result;
+  });
+  fileReader.readAsDataURL(files[0]);
+  iconImage.value = files[0];
+}
+
+function onNftFilePicked(event: any) {
+  const files = event.target.files;
+  let filename = files[0].name;
+  const fileReader = new FileReader();
+  fileReader.addEventListener("load", () => {
+    nftImageUrl.value = fileReader.result;
+  });
+  fileReader.readAsDataURL(files[0]);
+  nftImage.value = files[0];
+}
+
+const onTypeChange = (val: any) => {
+  let result = val.find((obj: { checked: boolean }) => obj.checked === true);
+  form.type = result.value;
+};
+
+/**
+ * * Add link
+ */
+function addLink() {
+  form.links.push({ label: linkText.value, url: linkURL.value });
+  linkText.value = "";
+  linkURL.value = "";
+}
+
+/**
+ * * Add a Task to Lesson content
+ */
+function addTask() {
+  form.tasks.push({ label: taskText.value, description: taskStep.value });
+  console.log("form.content", form.tasks);
+  taskText.value = "";
+  taskStep.value = "";
+}
+
+/**
+ * * Add a Quest Step to Lesson content
+ */
+function addQuest() {
+  form.quests.push({ label: questText.value, description: questStep.value });
+  console.log("form.content", form.quests);
+  questText.value = "";
+  questStep.value = "";
+}
+
+/**
+ * * Update our Course Category
+ */
+function selectCategory(event: Event) {
+  form.category = (event.target as HTMLInputElement).value;
+}
+
+/**
+ ** Video Methods https://codesandbox.io/p/sandbox/eloquent-mahavira-9kgrc?file=%2Fsrc%2FApp.vue%3A4%2C7-20%2C41&from-embed&initialpath=%2F
+ */
+const onPlayerPlay = ({
+  event,
+  player,
+}: {
+  event: PlayEvent;
+  player: HTMLVideoElement;
+}): void => {
+  console.log("onPlayerPlay", event.type);
+  player.play();
+};
+const onPlayerPause = ({
+  event,
+  player,
+}: {
+  event: PlayEvent;
+  player: HTMLVideoElement;
+}): void => {
+  console.log("onPlayerPause", event.type);
+  player.pause();
+};
+const onPlayerEnded = ({
+  event,
+  player,
+}: {
+  event: PlayEvent;
+  player: HTMLVideoElement;
+}): void => {
+  console.log("onPlayerEnded", event.type);
+  player.pause();
+};
+const onPlayerLoadeddata = ({ event }: { event: PlayEvent }): void => {
+  console.log("onPlayerLoadeddata", event.type);
+};
+const onPlayerWaiting = ({ event }: { event: PlayEvent }): void => {
+  console.log("onPlayerWaiting", event.type);
+};
+const onPlayerPlaying = ({ event }: { event: PlayEvent }): void => {
+  console.log("onPlayerPlaying", event.type);
+};
+const onPlayerTimeupdate = ({ event }: { event: PlayEvent }): void => {
+  console.log("onPlayerTimeupdate", {
+    event: event.type,
+    time: event.target.currentTime,
+  });
+  time.value = event.target.currentTime;
+};
+const onPlayerCanplay = ({ event }: { event: PlayEvent }): void => {
+  console.log("onPlayerCanplay", event.type);
+};
+const onPlayerCanplaythrough = ({ event }: { event: PlayEvent }): void => {
+  console.log("onPlayerCanplaythrough", event.type);
+};
+const playerStateChanged = ({ event }: { event: PlayEvent }): void => {
+  console.log("playerStateChanged", event.type);
+};
+
+const cancelCreate = () => {
+  form.value = {
+    id: undefined,
+    type: "article",
+    category: "",
+    categories: [],
+    banner: undefined,
+    image: undefined,
+    title: undefined,
+    excerpt: undefined,
+    description: undefined,
+    content: undefined,
+    video: undefined,
+    tasks: [],
+    quests: [],
+    price: undefined,
+    sales: undefined,
+    total: undefined,
+    token: undefined,
+    nft: {},
+    links: [],
+    step: 0,
+    isLive: false,
+    created_date: undefined,
+    updated_date: undefined,
+  };
+  step.value = 1;
+  emit("close");
+};
+
+const saveDraft = async () => {
+  console.log("Save Draft Lesson", form);
+  try {
+    if (!form.name) {
+      // await store.createCourse(form);
+    }
+  } catch {
+    console.log("An error has occurred!");
+  } finally {
+    step.value = 1;
+    emit("close");
+  }
+};
+
+const createLesson = async () => {
+  console.log("Create Lesson", form);
+  try {
+    if (!form) {
+      // await store.createLesson(form);
+    }
+  } catch {
+    console.log("An error has occurred!");
+  } finally {
+    step.value = 1;
+    emit("close");
+  }
+};
+
+const goBack = () => {
+  step.value -= 1;
+};
+const nextStep = () => {
+  step.value += 1;
+};
+</script>
+
+<style lang="scss" scoped>
+@import "../../assets/styles/variables.scss";
+@import "../../assets/styles/mixins.scss";
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  width: 100%;
+  height: 100%;
+  background: $white;
+  padding: 0;
+  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  width: 100%;
+  height: 40px;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  padding: 0;
+
+  .btn-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: $grasp-blue;
+    font-size: 24px;
+    font-weight: bold;
+    background: transparent;
+    border: none;
+    z-index: 999;
+    cursor: pointer;
+  }
+}
+
+.modal-body {
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  align-content: center;
+  padding: 30px 0 0 0;
+
+  .form-sidebar {
+    width: 240px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    padding: 50px 0 0 0;
+
+    ul {
+      width: 100%;
+      list-style: none;
+      text-decoration: none;
+      margin-block-start: 10px;
+      margin-block-end: 0;
+      margin-inline-start: 0;
+      margin-inline-end: 0;
+      padding-inline-start: 0;
+      padding-inline-end: 0;
+      border-top: 0.25px solid $white;
+      border-bottom: 0.25px solid $white;
+
+      li {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        align-content: center;
+        margin: 0;
+        padding: 8px 0;
+        color: $black;
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.5s linear;
+        cursor: pointer;
+
+        &:hover,
+        &:active,
+        &:focus,
+        &:focus-visible {
+          color: $grasp-cyan;
+        }
+
+        img {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+
+  .form-container {
+    width: 560px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: center;
+    padding: 0 0 180px 0;
+    z-index: 999996;
+    overflow-x: scroll;
+
+    h2 {
+      width: 100%;
+      color: $grasp-blue;
+      font-style: normal;
+      font-weight: 800;
+      font-size: 24px;
+      line-height: 30px;
+      margin: 0 0 16px 0;
+    }
+
+    .input-row {
+      width: 100%;
+      max-width: 400px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+
+      img,
+      svg {
+        width: 20px;
+        margin: 0 12px;
+      }
+
+      .link-text {
+        color: $black;
+        letter-spacing: 1px;
+        font-size: 14px;
+        line-height: 24px;
+        text-align: left;
+        padding: 4px 0 0 0;
+      }
+    }
+
+    .description-row {
+      width: 100%;
+      max-width: 540px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+
+      .link-text {
+        color: $black;
+        letter-spacing: 1px;
+        font-size: 14px;
+        line-height: 24px;
+        text-align: left;
+        padding: 4px 0 0 0;
+      }
+    }
+
+    .radio-row {
+      width: 98%;
+      height: 40px;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-content: center;
+      align-items: center;
+      background-color: #fdfdfd;
+      border: 1px solid #d9d9d9;
+      border-radius: 10px;
+
+      .radio-box {
+        display: flex;
+        flex-direction: row;
+        align-content: center;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 48px 0 0;
+        padding: 1% 2%;
+
+        label {
+          color: $black;
+          font-size: 15px;
+          font-weight: 600;
+          line-height: 20px;
+          font-style: normal;
+          text-wrap: nowrap;
+          margin: 0 36px 0 0;
+        }
+
+        input {
+          width: 15px;
+          color: $black;
+        }
+
+        input:read-only {
+          height: 15px;
+          color: $grasp-blue;
+          cursor: pointer;
+        }
+
+        input:focus {
+          border: 1px solid $grasp-blue;
+          outline: none;
+        }
+      }
+    }
+
+    .checkbox-row {
+      width: 98%;
+      height: 40px;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-content: center;
+      align-items: center;
+      background-color: #fdfdfd;
+      border: 1px solid #d9d9d9;
+      border-radius: 10px;
+
+      .checkbox-box {
+        display: flex;
+        flex-direction: row;
+        align-content: center;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 48px 0 0;
+        padding: 1% 2%;
+
+        label {
+          color: $black;
+          font-size: 15px;
+          font-weight: 600;
+          line-height: 20px;
+          font-style: normal;
+          text-wrap: nowrap;
+          margin: 0 36px 0 0;
+        }
+
+        input {
+          width: 15px;
+          color: $black;
+        }
+
+        input:read-only {
+          height: 15px;
+          color: $grasp-blue;
+          cursor: pointer;
+        }
+
+        input:focus {
+          border: 1px solid $grasp-blue;
+          outline: none;
+        }
+      }
+    }
+
+    .input-box {
+      width: 98%;
+      height: 40px;
+      position: relative;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-content: center;
+      align-items: center;
+      color: $black;
+      font-size: 14px;
+      line-height: 24px;
+      text-align: left;
+      background-color: #fdfdfd;
+      border: 1px solid #d9d9d9;
+      border-radius: 10px;
+      margin-bottom: 5px;
+
+      img,
+      svg {
+        width: 20px;
+        margin: 0 12px;
+      }
+
+      input {
+        width: 100%;
+        height: 40px;
+        color: $black;
+        background-color: transparent;
+        border: none;
+        border-radius: 10px;
+        letter-spacing: 1px;
+        font-size: 14px;
+        line-height: 24px;
+        text-align: left;
+        padding: 4px 0 0 0;
+      }
+
+      input::placeholder {
+        color: #a8a8a8;
+        letter-spacing: 1px;
+      }
+
+      input:read-only {
+        color: #1a1a1a;
+        border: 1px dashed #e0e0e0;
+        letter-spacing: 1px;
+        cursor: not-allowed;
+      }
+
+      input:focus {
+        border: none;
+        outline: none;
+      }
+    }
+
+    .input-box-column {
+      width: 98%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-content: center;
+      align-items: flex-start;
+      color: $black;
+      font-size: 14px;
+      line-height: 24px;
+      text-align: left;
+      margin-bottom: 5px;
+
+      img,
+      svg {
+        width: 20px;
+        margin: 0 12px;
+      }
+
+      input {
+        width: 100%;
+        height: 30px;
+        color: $black;
+        background-color: #fdfdfd;
+        border: 1px solid #d9d9d9;
+        border-radius: 10px;
+        letter-spacing: 1px;
+        font-size: 14px;
+        line-height: 24px;
+        margin-bottom: 8px;
+        padding: 1% 2%;
+        text-align: left;
+      }
+
+      input::placeholder {
+        color: #a8a8a8;
+        letter-spacing: 1px;
+      }
+
+      input:read-only {
+        color: #1a1a1a;
+        border: 1px dashed #e0e0e0;
+        letter-spacing: 1px;
+        cursor: not-allowed;
+      }
+
+      input:focus {
+        border: 1px solid $grasp-blue;
+        outline: none;
+      }
+
+      textarea {
+        width: 100%;
+        height: auto;
+        color: $black;
+        background-color: #fdfdfd;
+        border: 1px solid #d9d9d9;
+        border-radius: 10px;
+        letter-spacing: 1px;
+        font-size: 14px;
+        line-height: 24px;
+        margin-bottom: 5px;
+        padding: 1% 2%;
+        text-align: left;
+        resize: none;
+      }
+
+      textarea::placeholder {
+        color: #a8a8a8;
+        letter-spacing: 1px;
+      }
+
+      textarea:focus {
+        border: 1px solid $grasp-blue;
+        outline: none;
+      }
+    }
+
+    .upload-box {
+      width: 98%;
+      height: 60px;
+      position: relative;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-content: center;
+      align-items: center;
+      color: $grey-70;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 24px;
+      text-align: left;
+      background-color: #fdfdfd;
+      border: 1px solid #d9d9d9;
+      border-radius: 10px;
+      margin-bottom: 5px;
+
+      input {
+        width: 100%;
+        height: 40px;
+        color: $black;
+        background-color: transparent;
+        border: none;
+        border-radius: 10px;
+        letter-spacing: 1px;
+        font-size: 14px;
+        line-height: 24px;
+        text-align: left;
+        padding: 4px 0 0 0;
+      }
+
+      input::placeholder {
+        color: #a8a8a8;
+        letter-spacing: 1px;
+      }
+
+      input:read-only {
+        color: #1a1a1a;
+        border: 1px dashed #e0e0e0;
+        letter-spacing: 1px;
+        cursor: not-allowed;
+      }
+
+      input:focus {
+        border: none;
+        outline: none;
+      }
+
+      .select-file-button {
+        width: auto;
+        height: 40px;
+        display: flex;
+        flex-direction: row;
+        align-content: center;
+        align-items: center;
+        justify-content: center;
+        color: $black;
+        background-color: $grasp-cyan;
+        font-size: 14px;
+        font-weight: bold;
+        border: 1px solid $grasp-cyan;
+        border-radius: 10px;
+        padding-left: 20px;
+        padding-right: 20px;
+        margin: 0 8px;
+        transition: all 0.5s linear;
+        cursor: pointer;
+
+        img {
+          width: 20px;
+          margin-right: 4px;
+        }
+
+        &:hover,
+        &:active,
+        &:focus,
+        &:focus-visible {
+          border: 1px solid $black;
+        }
+
+        &:disabled {
+          background: #c6c6c6;
+          border: 2px solid $grey-50;
+          color: $grasp-blue;
+          cursor: not-allowed;
+        }
+      }
+    }
+
+    .date-row {
+      width: 100%;
+      max-width: 540px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+
+      label {
+        color: $black;
+        font-style: normal;
+        font-weight: 800;
+        font-size: 15px;
+        line-height: 18px;
+        margin: 8px 0 8px 8px;
+      }
+      .date-inputs {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+
+        input {
+          width: 46%;
+          height: 30px;
+          color: #a8a8a8;
+          background-color: #fdfdfd;
+          border: 1px solid #d9d9d9;
+          border-radius: 10px;
+          letter-spacing: 1px;
+          font-size: 14px;
+          line-height: 24px;
+          margin-bottom: 5px;
+          margin-right: 8px;
+          padding: 1% 2%;
+          text-align: left;
+        }
+
+        input::placeholder {
+          color: #a8a8a8;
+          letter-spacing: 1px;
+        }
+
+        input:read-only {
+          height: 40px;
+          color: #a8a8a8;
+          border: 1px dashed #e0e0e0;
+          letter-spacing: 1px;
+          cursor: not-allowed;
+          padding-top: 20px;
+        }
+
+        input:focus {
+          border: 1px solid $grasp-blue;
+          outline: none;
+        }
+      }
+    }
+
+    label {
+      color: $black;
+      font-style: normal;
+      font-weight: 800;
+      font-size: 15px;
+      line-height: 18px;
+      margin: 8px 0 8px 8px;
+    }
+
+    input {
+      width: 96%;
+      height: 30px;
+      color: $black;
+      background-color: #fdfdfd;
+      border: 1px solid #d9d9d9;
+      border-radius: 10px;
+      letter-spacing: 1px;
+      font-size: 14px;
+      line-height: 24px;
+      margin-bottom: 5px;
+      padding: 1% 2%;
+      text-align: left;
+    }
+
+    input::placeholder {
+      color: #a8a8a8;
+      letter-spacing: 1px;
+    }
+
+    input:read-only {
+      height: 40px;
+      color: #1a1a1a;
+      border: 1px dashed #e0e0e0;
+      letter-spacing: 1px;
+      cursor: not-allowed;
+      padding-top: 20px;
+    }
+
+    input:focus {
+      border: 1px solid $grasp-blue;
+      outline: none;
+    }
+
+    textarea {
+      width: 96%;
+      height: auto;
+      color: $black;
+      background-color: #fdfdfd;
+      border: 1px solid #d9d9d9;
+      border-radius: 10px;
+      letter-spacing: 1px;
+      font-size: 14px;
+      line-height: 24px;
+      margin-bottom: 5px;
+      padding: 1% 2%;
+      text-align: left;
+      resize: none;
+    }
+
+    textarea::placeholder {
+      color: #a8a8a8;
+      letter-spacing: 1px;
+    }
+
+    textarea:focus {
+      border: 1px solid $grasp-blue;
+      outline: none;
+    }
+
+    .select-row {
+      width: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      margin-bottom: 15px;
+
+      label.black {
+        width: 100%;
+        color: $black;
+        font-style: normal;
+        font-weight: 800;
+        font-size: 20px;
+        line-height: 24px;
+        letter-spacing: 0.1em;
+        margin: 8px 0 2px 15px;
+        text-align: left;
+      }
+    }
+
+    .category-select {
+      width: 98%;
+      height: 40px;
+      color: $grey-60;
+      background-color: #fdfdfd;
+      border: 1px solid #d9d9d9;
+      border-radius: 10px;
+      letter-spacing: 1px;
+      font-size: 14px;
+      line-height: 24px;
+      margin-bottom: 5px;
+      padding: 1% 2%;
+      text-align: left;
+      transition: all 0.5s linear;
+      cursor: pointer;
+
+      &:focus,
+      &:focus-visible,
+      &:active {
+        color: $grey-90;
+        border: 0.5px solid $grey-50;
+        outline: -webkit-focus-ring-color auto 0px;
+      }
+    }
+
+    .nft-preview {
+      display: inline;
+      float: left;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 480px;
+      background: $cream;
+      border: 0.5px solid $grey-50;
+      border-radius: 8px;
+      box-shadow: rgba(17, 17, 26, 0.05) 0px 1px 0px, rgba(17, 17, 26, 0.1) 0px 0px 8px;
+      margin: 0;
+      padding: 16px;
+      transition: all 0.5s linear;
+      overflow: hidden;
+
+      .nft-image {
+        position: relative;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0;
+        overflow: hidden;
+        background: transparent;
+
+        img,
+        svg {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          overflow: hidden;
+          background: transparent;
+        }
+      }
+
+      .nft-title {
+        font-family: "Poppins", sans-serif;
+        color: $grasp-blue;
+        width: 100%;
+        font-size: 16px;
+        font-weight: 600;
+        text-align: left;
+        margin: 0 0 5px 0;
+      }
+
+      .nft-excerpt {
+        width: 100%;
+        color: $black;
+        font-size: 13px;
+        font-weight: normal;
+        text-align: left;
+        margin: 0 0 16px;
+      }
+
+      .nft-card-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-content: center;
+        align-items: flex-end;
+      }
+
+      .nft-category {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-content: center;
+        align-items: center;
+
+        color: $black;
+        font-size: 13px;
+        font-weight: 500;
+        text-transform: uppercase;
+        margin: 0;
+
+        .nft-date {
+          font-family: inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue",
+            sans-serif;
+          color: $grey-60;
+          font-size: 12px;
+          font-weight: 500;
+          text-decoration: none;
+          text-transform: uppercase;
+          margin: 0 0 4px 0;
+        }
+
+        .category-indicator {
+          width: 80%;
+          outline: transparent solid 2px;
+          outline-offset: 2px;
+          border-radius: 9999px;
+          transition: background-color 0.2s ease-out 0s;
+          background: $grasp-cyan;
+          font-size: 12px;
+          text-align: center;
+          text-wrap: nowrap;
+          padding-inline: 8px;
+          padding-top: 1px;
+          padding-bottom: 1px;
+          --badge-color: $grey-40;
+          color: $grey-90;
+          box-shadow: none;
+          border-width: 1.5px;
+          border-style: solid;
+          border-image: initial;
+          border-color: #4d5358;
+        }
+      }
+      .button-column {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-content: center;
+        align-items: center;
+        padding: 0;
+        margin: 0;
+      }
+    }
+
+    .mb-20 {
+      margin-bottom: 20px;
+    }
+    .mb-10 {
+      margin-bottom: 10px;
+    }
+    .mb-5 {
+      margin-bottom: 5px;
+    }
+  }
+}
+
+.videoplayer {
+  width: 100%;
+  max-width: 100%; // Ensure it doesn't overflow
+  margin: 20px auto 20px;
+  height: auto; // Keep aspect ratio
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.no-video-banner {
+  width: 100%;
+  max-width: 100%;
+  margin: 20px auto 10px;
+  height: auto;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.videoplayer-controls {
+  width: 100%;
+  display: flex;
+  font-family: inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  color: $black;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  text-transform: uppercase;
+  margin: 10px auto 0;
+}
+
+.videoplayer-controls-toggleplay,
+.videoplayer-controls-togglemute {
+  flex: 1;
+  color: $white;
+  width: auto;
+  height: 30px;
+  display: flex;
+  flex-direction: row nowrap;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  background-color: $grasp-blue;
+  border: 0.5px solid $grasp-blue;
+  text-transform: capitalize;
+  border-radius: 8px;
+  padding-left: 10px;
+  padding-right: 10px;
+  transition: all 0.4s linear;
+  cursor: pointer;
+
+  &:hover,
+  &:active,
+  &:focus,
+  &:focus-visible {
+    color: $white;
+    border: 0.5px solid $grasp-cyan;
+  }
+}
+
+.videoplayer-controls-time {
+  flex: 2;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  text-align: center;
+  // line-height: 2.8;
+  padding: 0 2px;
+}
+
+.videoplayer-controls-track {
+  // flex: 5;
+  line-height: 2.7;
+  padding-right: 10px;
+}
+
+.modal-footer {
+  width: 100%;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  padding: 30px 0 50px 0;
+  background: $white;
+  box-shadow: 0px 16px 32px 0px rgba(52, 58, 64, 0.3);
+  z-index: 999999;
+
+  .footer-container {
+    width: 740px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    .button-container {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+    }
+  }
+}
+
+.modal-fade-enter,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+</style>

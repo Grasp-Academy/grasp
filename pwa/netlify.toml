@@ -1,0 +1,22 @@
+[[plugins]]
+package = "@netlify/plugin-sitemap"
+  [plugins.inputs]
+  buildDir = "dist"
+  exclude = [
+    './dist/admin/**',
+    './dist/404.html'
+  ]
+  changeFreq = "weekly"
+  priority = 0.5
+
+[[redirects]]
+  from = "/*"
+  to = "/dashboard"
+  status = 200
+  force = false
+  query = {path = ":path"}
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
